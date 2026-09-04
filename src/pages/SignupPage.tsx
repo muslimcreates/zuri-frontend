@@ -21,6 +21,7 @@ export function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -31,7 +32,7 @@ export function SignupPage() {
     setFieldErrors({});
     setSubmitting(true);
     try {
-      const me = await signup(name, email, password);
+      const me = await signup(name, email, password, agreeToTerms);
       navigate(destinationFor(me), { replace: true });
     } catch (err) {
       if (err instanceof ApiError) {
@@ -50,6 +51,13 @@ export function SignupPage() {
       <h1>Create an account</h1>
 
       <GoogleButton onSuccess={(me) => navigate(destinationFor(me), { replace: true })} />
+      <p className="auth-terms-notice">
+        By continuing with Google, you agree to our{" "}
+        <Link to="/terms" target="_blank" rel="noopener noreferrer">
+          Terms &amp; Conditions
+        </Link>
+        , including receiving occasional emails from Zuri Express.
+      </p>
       <div className="auth-divider">or</div>
 
       <form onSubmit={handleSubmit} className="auth-form">
@@ -67,6 +75,22 @@ export function SignupPage() {
           Password
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           {fieldErrors.password && <span className="field-error">{fieldErrors.password[0]}</span>}
+        </label>
+        <label className="auth-terms-checkbox">
+          <input
+            type="checkbox"
+            checked={agreeToTerms}
+            onChange={(e) => setAgreeToTerms(e.target.checked)}
+            required
+          />
+          <span>
+            I agree to the{" "}
+            <Link to="/terms" target="_blank" rel="noopener noreferrer">
+              Terms &amp; Conditions
+            </Link>
+            , including receiving occasional emails from Zuri Express.
+          </span>
+          {fieldErrors.agreeToTerms && <span className="field-error">{fieldErrors.agreeToTerms[0]}</span>}
         </label>
         {error && !Object.keys(fieldErrors).length && <p className="field-error">{error}</p>}
         <button type="submit" className="button-primary" disabled={submitting}>

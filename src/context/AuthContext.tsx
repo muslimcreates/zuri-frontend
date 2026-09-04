@@ -17,7 +17,7 @@ type AuthContextValue = {
   // caller can decide where to navigate — e.g. straight to /admin for an
   // admin — without waiting on a re-render to see the updated `user` above.
   login: (email: string, password: string) => Promise<User>;
-  signup: (name: string, email: string, password: string) => Promise<User>;
+  signup: (name: string, email: string, password: string, agreeToTerms: boolean) => Promise<User>;
   loginWithGoogle: (credential: string) => Promise<User>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -58,8 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return me;
   }, []);
 
-  const signup = useCallback(async (name: string, email: string, password: string) => {
-    const me = await api.signup({ name, email, password });
+  const signup = useCallback(async (name: string, email: string, password: string, agreeToTerms: boolean) => {
+    const me = await api.signup({ name, email, password, agreeToTerms });
     setUser(me);
     setWelcomeKind("new"); // signing up only ever creates a new account
     return me;

@@ -54,7 +54,7 @@ const del = <T>(path: string) => request<T>(path, { method: "DELETE" });
 
 export const api = {
   // Auth
-  signup: (data: { name: string; email: string; password: string }) =>
+  signup: (data: { name: string; email: string; password: string; agreeToTerms: boolean }) =>
     post<User>("/api/auth/signup", data),
   login: (data: { email: string; password: string }) => post<User>("/api/auth/login", data),
   // isNewUser distinguishes "just created this account" from "logged into
