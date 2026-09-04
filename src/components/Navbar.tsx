@@ -28,11 +28,21 @@ export function Navbar() {
           {!isAdmin && (
             <>
               <Link to="/shop">Shop</Link>
-              {user && <Link to="/orders">My Orders</Link>}
-              <Link to="/cart" className="cart-link">
-                Cart
-                {itemCount > 0 && <span className="cart-badge">{itemCount}</span>}
-              </Link>
+              {/* Cart (and Orders) only make sense once there's an account
+                  behind them — /cart is a ProtectedRoute anyway so a
+                  signed-out visitor clicking it would just get bounced to
+                  /login, but showing it at all before that point is
+                  confusing UI for no benefit, so it's gated on `user` the
+                  same way "My Orders" already is. */}
+              {user && (
+                <>
+                  <Link to="/orders">My Orders</Link>
+                  <Link to="/cart" className="cart-link">
+                    Cart
+                    {itemCount > 0 && <span className="cart-badge">{itemCount}</span>}
+                  </Link>
+                </>
+              )}
             </>
           )}
           {isAdmin && <Link to="/admin">Admin dashboard</Link>}

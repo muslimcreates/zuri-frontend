@@ -126,11 +126,19 @@ h3 {
 .button-link {
   background: var(--brand);
   color: #fff;
+  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 .button-primary:hover,
 .button-link:hover {
   background: var(--brand-dark);
   text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(180, 83, 9, 0.25);
+}
+.button-primary:active,
+.button-link:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 .button-primary:disabled {
   opacity: 0.6;
@@ -140,6 +148,14 @@ h3 {
   background: #fff;
   border-color: var(--brand);
   color: var(--brand-dark);
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.button-secondary:hover {
+  background: var(--brand-light);
+  transform: translateY(-1px);
+}
+.button-secondary:active {
+  transform: translateY(0);
 }
 .link-button {
   background: none;
@@ -717,6 +733,76 @@ main {
   margin-top: 10px;
 }
 
+/* Hero is above the fold, so it animates in on load rather than on scroll —
+   a brief, confident entrance rather than the page just snapping into
+   existence. Each child is staggered slightly via animation-delay. */
+.landing-hero-animated > * {
+  animation: heroRise 0.6s ease both;
+}
+.landing-hero-animated > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.landing-hero-animated > *:nth-child(2) {
+  animation-delay: 80ms;
+}
+.landing-hero-animated > *:nth-child(3) {
+  animation-delay: 160ms;
+}
+.landing-hero-animated > *:nth-child(4) {
+  animation-delay: 220ms;
+}
+.landing-hero-animated > *:nth-child(5) {
+  animation-delay: 280ms;
+}
+@keyframes heroRise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Trust bar --- */
+.landing-trust {
+  background: var(--brand-light);
+  padding: 22px 20px;
+}
+.landing-trust-list {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.landing-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand-dark);
+}
+.landing-trust-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.landing-trust-item.is-visible .landing-trust-icon {
+  animation: iconPop 0.4s ease both;
+}
+@keyframes iconPop {
+  from {
+    transform: scale(0.6);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
 .landing-features {
   max-width: 1100px;
   margin: 0 auto;
@@ -731,6 +817,11 @@ main {
   border-radius: var(--radius);
   padding: 20px;
   text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.landing-feature:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(26, 26, 26, 0.06);
 }
 .landing-feature h3 {
   color: var(--brand-dark);
@@ -763,6 +854,9 @@ main {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 18px;
 }
+.landing-product-card-wrap {
+  display: block;
+}
 .landing-product-card {
   color: var(--ink);
   border: 1px solid var(--border);
@@ -770,20 +864,28 @@ main {
   overflow: hidden;
   background: #fff;
   display: block;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .landing-product-card:hover {
   text-decoration: none;
   border-color: var(--brand);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(26, 26, 26, 0.08);
 }
 .landing-product-image {
   aspect-ratio: 1 / 1;
   background: #fff;
+  overflow: hidden;
 }
 .landing-product-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.3s ease;
+}
+.landing-product-card:hover .landing-product-image img {
+  transform: scale(1.05);
 }
 .landing-product-body {
   padding: 12px;
@@ -801,6 +903,43 @@ main {
   margin: 0 0 18px;
 }
 
+/* --- Scroll-reveal (see components/Reveal.tsx / hooks/useInView.ts) ---
+   Starts slightly down and transparent, animates to its resting position
+   the moment it's ~15% into the viewport. `transition-delay` (set inline
+   per-element) is what staggers a group of siblings instead of everything
+   arriving at once. */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Motion is decoration here, never information — anyone who's asked the OS
+   to reduce motion gets every animation above collapsed to instant, no
+   exceptions. */
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero-animated > *,
+  .landing-trust-item.is-visible .landing-trust-icon,
+  .reveal {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .landing-feature:hover,
+  .landing-product-card:hover,
+  .landing-product-card:hover .landing-product-image img,
+  .button-primary:hover,
+  .button-secondary:hover,
+  .button-link:hover {
+    transform: none !important;
+  }
+}
+
 /* --- Responsive --- */
 @media (max-width: 760px) {
   .product-detail-grid,
@@ -812,6 +951,14 @@ main {
     position: static;
   }
   .landing-features {
+    grid-template-columns: 1fr;
+  }
+  .landing-trust-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .landing-trust-list {
     grid-template-columns: 1fr;
   }
 }
