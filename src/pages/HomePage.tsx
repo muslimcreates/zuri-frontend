@@ -31,7 +31,7 @@ export function HomePage() {
     <div className="page">
       <section className="hero">
         <h1>Kenyan merchandise, delivered in Türkiye</h1>
-        <p>Groceries, spices, fabric and more — some in stock locally, some imported per order.</p>
+        <p>Groceries, spices, fabric and more — all your Kenyan favourites in one place.</p>
       </section>
 
       <div className="category-filters">

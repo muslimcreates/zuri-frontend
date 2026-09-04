@@ -1,4 +1,5 @@
 import type {
+  CartItem,
   Category,
   DashboardStats,
   ManualPaymentMethod,
@@ -56,11 +57,18 @@ export const api = {
   signup: (data: { name: string; email: string; password: string }) =>
     post<User>("/api/auth/signup", data),
   login: (data: { email: string; password: string }) => post<User>("/api/auth/login", data),
-  loginWithGoogle: (credential: string) => post<User>("/api/auth/google", { credential }),
+  // isNewUser distinguishes "just created this account" from "logged into
+  // or linked onto an existing one" — email/password login and signup don't
+  // need this (login only ever hits an existing account, signup only ever
+  // creates one), but Google can go either way depending on whether that
+  // email was already registered. See routes/auth.ts's /google route.
+  loginWithGoogle: (credential: string) =>
+    post<User & { isNewUser: boolean }>("/api/auth/google", { credential }),
   logout: () => post<void>("/api/auth/logout"),
   me: () => get<User>("/api/auth/me"),
   verifyEmail: (token: string) =>
     get<{ verified: true }>(`/api/auth/verify-email?token=${encodeURIComponent(token)}`),
+  verifyEmailCode: (code: string) => post<{ verified: true }>("/api/auth/verify-email-code", { code }),
   resendVerification: () => post<{ sent?: true; alreadyVerified?: true }>("/api/auth/resend-verification"),
 
   // Catalog
@@ -69,9 +77,19 @@ export const api = {
     get<Product[]>(`/api/products${categorySlug ? `?category=${encodeURIComponent(categorySlug)}` : ""}`),
   product: (slug: string) => get<Product>(`/api/products/${encodeURIComponent(slug)}`),
 
+  // Cart — stored server-side, per user (see the backend's src/lib/cart.ts).
+  // Every one of these returns the cart's full, current item list.
+  cart: () => get<CartItem[]>("/api/cart"),
+  addCartItem: (productId: string, quantity = 1) =>
+    post<CartItem[]>("/api/cart/items", { productId, quantity }),
+  setCartItemQuantity: (productId: string, quantity: number) =>
+    put<CartItem[]>(`/api/cart/items/${encodeURIComponent(productId)}`, { quantity }),
+  removeCartItem: (productId: string) =>
+    del<CartItem[]>(`/api/cart/items/${encodeURIComponent(productId)}`),
+  clearCart: () => del<CartItem[]>("/api/cart"),
+
   // Orders
   checkout: (data: {
-    items: { productId: string; quantity: number }[];
     address: {
       fullName: string;
       phone: string;

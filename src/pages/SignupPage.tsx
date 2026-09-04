@@ -3,6 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../lib/api";
 import { GoogleButton } from "../components/GoogleButton";
+import type { User } from "../lib/types";
+
+// Signing up with a password always creates a CUSTOMER account, but the
+// Google button here can still resolve to an existing account (see
+// POST /api/auth/google — it links/logs into a matching email rather than
+// always creating a new one), which could be an admin's. Route by role
+// either way so that isn't a dead end.
+function destinationFor(user: User) {
+  return user.role === "ADMIN" ? "/admin" : "/shop";
+}
 
 export function SignupPage() {
   const { signup } = useAuth();
@@ -21,8 +31,8 @@ export function SignupPage() {
     setFieldErrors({});
     setSubmitting(true);
     try {
-      await signup(name, email, password);
-      navigate("/", { replace: true });
+      const me = await signup(name, email, password);
+      navigate(destinationFor(me), { replace: true });
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
@@ -39,7 +49,7 @@ export function SignupPage() {
     <div className="page auth-page">
       <h1>Create an account</h1>
 
-      <GoogleButton />
+      <GoogleButton onSuccess={(me) => navigate(destinationFor(me), { replace: true })} />
       <div className="auth-divider">or</div>
 
       <form onSubmit={handleSubmit} className="auth-form">

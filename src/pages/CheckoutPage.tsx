@@ -1,7 +1,7 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, ApiError } from "../lib/api";
-import type { ManualPaymentMethod, Product } from "../lib/types";
+import type { ManualPaymentMethod } from "../lib/types";
 import { formatTRY } from "../lib/money";
 import { useCart } from "../context/CartContext";
 
@@ -19,11 +19,8 @@ const PAYMENT_METHODS: { value: ManualPaymentMethod; label: string; hint: string
 ];
 
 export function CheckoutPage() {
-  const { lines, clearCart } = useCart();
+  const { items, loading: cartLoading, clearCart } = useCart();
   const navigate = useNavigate();
-
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -36,18 +33,12 @@ export function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
-  useEffect(() => {
-    api
-      .products()
-      .then(setProducts)
-      .finally(() => setLoadingProducts(false));
-  }, []);
-
-  const byId = new Map(products.map((p) => [p.id, p]));
-  const rows = lines
-    .map((line) => ({ line, product: byId.get(line.productId) }))
-    .filter((r): r is { line: typeof r.line; product: Product } => Boolean(r.product));
-  const subtotalKurus = rows.reduce((sum, r) => sum + r.product.priceKurus * r.line.quantity, 0);
+  // Same reasoning as CartPage — a product can go inactive after it was
+  // added to the cart; the order is placed from whatever the server's
+  // cart actually resolves to active products, so keep this in sync with
+  // what checkout will really charge for.
+  const rows = items.filter((i) => i.product.active);
+  const subtotalKurus = rows.reduce((sum, r) => sum + r.product.priceKurus * r.quantity, 0);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -55,12 +46,16 @@ export function CheckoutPage() {
     setFieldErrors({});
     setSubmitting(true);
     try {
+      // The server places the order from the caller's own cart — it's not
+      // sent in this request at all (see the backend's POST /api/orders).
       const order = await api.checkout({
-        items: lines.map((l) => ({ productId: l.productId, quantity: l.quantity })),
         address: { fullName, phone, city, addressLine, postalCode },
         paymentMethod,
       });
-      clearCart();
+      // The server already clears the cart once the order is created;
+      // this just syncs that into the local cache so the navbar badge
+      // and any other open view update immediately.
+      clearCart().catch(() => {});
       navigate(`/orders/${order.orderNumber}`, { state: { justPlaced: true } });
     } catch (err) {
       if (err instanceof ApiError) {
@@ -74,7 +69,7 @@ export function CheckoutPage() {
     }
   }
 
-  if (loadingProducts) return <p className="page-loading">Loading…</p>;
+  if (cartLoading) return <p className="page-loading">Loading…</p>;
 
   if (rows.length === 0) {
     return (
@@ -147,12 +142,12 @@ export function CheckoutPage() {
         <div className="order-summary">
           <h2>Order summary</h2>
           <ul>
-            {rows.map(({ line, product }) => (
+            {rows.map(({ product, quantity }) => (
               <li key={product.id}>
                 <span>
-                  {product.name} &times; {line.quantity}
+                  {product.name} &times; {quantity}
                 </span>
-                <span>{formatTRY(product.priceKurus * line.quantity)}</span>
+                <span>{formatTRY(product.priceKurus * quantity)}</span>
               </li>
             ))}
           </ul>

@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
 
-// A non-blocking nudge — the backend doesn't require a verified email to
-// log in or check out (see its README), this is just a reminder.
+// Shown wherever it's mounted (e.g. the shop header) as an early nudge.
+// The actual enforcement happens in ProtectedRoute, which redirects an
+// unverified user to /verify-email the moment they try to reach the cart,
+// checkout, or their orders — this banner just lets them get ahead of that.
 export function VerifyEmailBanner() {
   const { user } = useAuth();
   const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");

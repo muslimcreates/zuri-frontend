@@ -13,6 +13,7 @@ export function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const [addError, setAddError] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ export function ProductDetailPage() {
     return (
       <div className="page">
         <p className="page-error">{error}</p>
-        <Link to="/">&larr; Back to shop</Link>
+        <Link to="/shop">&larr; Back to shop</Link>
       </div>
     );
   }
@@ -39,15 +40,22 @@ export function ProductDetailPage() {
   const outOfStock = product.fulfillmentType === "STOCKED" && (product.stock ?? 0) <= 0;
   const maxQuantity = product.fulfillmentType === "STOCKED" ? Math.max(product.stock ?? 0, 0) : 99;
 
-  function handleAddToCart() {
-    addToCart(product!.id, quantity);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+  async function handleAddToCart() {
+    setAddError(null);
+    try {
+      await addToCart(product!.id, quantity);
+      setAdded(true);
+      setTimeout(() => setAdded(false), 2000);
+      return true;
+    } catch {
+      setAddError("Couldn't add that to your cart. Please try again.");
+      return false;
+    }
   }
 
   return (
     <div className="page product-detail">
-      <Link to="/" className="back-link">
+      <Link to="/shop" className="back-link">
         &larr; Back to shop
       </Link>
 
@@ -62,11 +70,11 @@ export function ProductDetailPage() {
 
           {product.fulfillmentType === "STOCKED" ? (
             <p className="fulfillment-note">
-              {outOfStock ? "Currently out of stock." : `${product.stock} in stock, ready to ship from Türkiye.`}
+              {outOfStock ? "Currently out of stock." : `${product.stock} in stock, ready to ship.`}
             </p>
           ) : (
             <p className="fulfillment-note">
-              Imported from Kenya per order — estimated {product.leadTimeDays} days to arrive.
+              Made to order — ships in about {product.leadTimeDays} days.
             </p>
           )}
 
@@ -82,11 +90,18 @@ export function ProductDetailPage() {
               <button type="button" className="button-primary" onClick={handleAddToCart}>
                 {added ? "Added ✓" : "Add to cart"}
               </button>
-              <button type="button" className="button-secondary" onClick={() => { handleAddToCart(); navigate("/cart"); }}>
+              <button
+                type="button"
+                className="button-secondary"
+                onClick={async () => {
+                  if (await handleAddToCart()) navigate("/cart");
+                }}
+              >
                 Buy now
               </button>
             </div>
           )}
+          {addError && <p className="field-error">{addError}</p>}
         </div>
       </div>
     </div>

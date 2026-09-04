@@ -3,6 +3,7 @@ import { Navbar } from "./components/Navbar";
 import { VerifyEmailBanner } from "./components/VerifyEmailBanner";
 import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
 
+import { LandingPage } from "./pages/LandingPage";
 import { HomePage } from "./pages/HomePage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
 import { CartPage } from "./pages/CartPage";
@@ -28,9 +29,31 @@ function App() {
       <VerifyEmailBanner />
       <main>
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/products/:slug" element={<ProductDetailPage />} />
-          <Route path="/cart" element={<CartPage />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route
+            path="/shop"
+            element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products/:slug"
+            element={
+              <ProtectedRoute>
+                <ProductDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cart"
+            element={
+              <ProtectedRoute>
+                <CartPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/checkout"
             element={

@@ -1,39 +1,57 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api } from "../lib/api";
-import type { Product } from "../lib/types";
 import { formatTRY } from "../lib/money";
 import { useCart } from "../context/CartContext";
 
 export function CartPage() {
-  const { lines, setQuantity, removeFromCart, clearCart } = useCart();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { items, loading, setQuantity, removeFromCart, clearCart } = useCart();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    api
-      .products()
-      .then(setProducts)
-      .finally(() => setLoading(false));
-  }, []);
+  const [error, setError] = useState<string | null>(null);
 
   if (loading) return <p className="page-loading">Loading your cart…</p>;
 
-  const byId = new Map(products.map((p) => [p.id, p]));
-  const rows = lines
-    .map((line) => ({ line, product: byId.get(line.productId) }))
-    .filter((r): r is { line: typeof r.line; product: Product } => Boolean(r.product));
+  // A product can go inactive (hidden by the admin) after it was added to
+  // someone's cart — the server still returns that line (see the backend's
+  // GET /api/cart), so filter it out here rather than let someone try to
+  // buy something no longer for sale.
+  const rows = items.filter((i) => i.product.active);
+  const droppedCount = items.length - rows.length;
 
-  const subtotalKurus = rows.reduce((sum, r) => sum + r.product.priceKurus * r.line.quantity, 0);
-  const droppedCount = lines.length - rows.length;
+  const subtotalKurus = rows.reduce((sum, r) => sum + r.product.priceKurus * r.quantity, 0);
+
+  async function handleSetQuantity(productId: string, quantity: number) {
+    try {
+      setError(null);
+      await setQuantity(productId, quantity);
+    } catch {
+      setError("Couldn't update that item. Please try again.");
+    }
+  }
+
+  async function handleRemove(productId: string) {
+    try {
+      setError(null);
+      await removeFromCart(productId);
+    } catch {
+      setError("Couldn't remove that item. Please try again.");
+    }
+  }
+
+  async function handleClear() {
+    try {
+      setError(null);
+      await clearCart();
+    } catch {
+      setError("Couldn't clear your cart. Please try again.");
+    }
+  }
 
   if (rows.length === 0) {
     return (
       <div className="page">
         <h1>Your cart</h1>
         <p>Your cart is empty.</p>
-        <Link to="/" className="button-primary">
+        <Link to="/shop" className="button-primary">
           Browse products
         </Link>
       </div>
@@ -48,6 +66,7 @@ export function CartPage() {
           {droppedCount} item(s) in your cart are no longer available and were removed.
         </p>
       )}
+      {error && <p className="page-error">{error}</p>}
 
       <table className="cart-table">
         <thead>
@@ -60,7 +79,7 @@ export function CartPage() {
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ line, product }) => {
+          {rows.map(({ product, quantity }) => {
             const maxQuantity =
               product.fulfillmentType === "STOCKED" ? Math.max(product.stock ?? 0, 0) : 99;
             return (
@@ -75,13 +94,15 @@ export function CartPage() {
                     type="number"
                     min={1}
                     max={maxQuantity || undefined}
-                    value={line.quantity}
-                    onChange={(e) => setQuantity(product.id, Math.max(1, Number(e.target.value) || 1))}
+                    value={quantity}
+                    onChange={(e) =>
+                      handleSetQuantity(product.id, Math.max(1, Number(e.target.value) || 1))
+                    }
                   />
                 </td>
-                <td>{formatTRY(product.priceKurus * line.quantity)}</td>
+                <td>{formatTRY(product.priceKurus * quantity)}</td>
                 <td>
-                  <button type="button" className="link-button" onClick={() => removeFromCart(product.id)}>
+                  <button type="button" className="link-button" onClick={() => handleRemove(product.id)}>
                     Remove
                   </button>
                 </td>
@@ -96,7 +117,7 @@ export function CartPage() {
           Subtotal: <strong>{formatTRY(subtotalKurus)}</strong>
         </p>
         <div className="cart-summary-actions">
-          <button type="button" className="link-button" onClick={clearCart}>
+          <button type="button" className="link-button" onClick={handleClear}>
             Clear cart
           </button>
           <button type="button" className="button-primary" onClick={() => navigate("/checkout")}>

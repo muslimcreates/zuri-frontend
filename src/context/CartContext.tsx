@@ -1,83 +1,99 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { CartLine } from "../lib/types";
+import { api } from "../lib/api";
+import type { CartItem } from "../lib/types";
+import { useAuth } from "./AuthContext";
 
-// The backend never stores carts (see its README) — the frontend owns cart
-// state and only tells the server about it at checkout time. localStorage
-// keeps it across reloads; the server always re-validates prices/stock
-// server-side, so nothing here needs to be authoritative.
-
-const STORAGE_KEY = "zuri-express-cart";
-
-function readStoredCart(): CartLine[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (l): l is CartLine => typeof l?.productId === "string" && typeof l?.quantity === "number"
-    );
-  } catch {
-    return [];
-  }
-}
+// The cart is stored server-side, per user (see the backend's
+// src/lib/cart.ts) — this context is just a thin, reactive cache of it.
+// Every mutation calls the API and replaces `items` with whatever the
+// server says the cart now contains, so there's never a local copy that
+// can drift from the database or leak between users. It only loads/holds
+// anything once someone is signed in — the shop, product pages, and the
+// cart itself are all behind login (see App.tsx), so there's no
+// meaningful "guest cart" case to handle.
 
 type CartContextValue = {
-  lines: CartLine[];
+  items: CartItem[];
+  loading: boolean;
   itemCount: number;
   quantityOf: (productId: string) => number;
-  addToCart: (productId: string, quantity?: number) => void;
-  setQuantity: (productId: string, quantity: number) => void;
-  removeFromCart: (productId: string) => void;
-  clearCart: () => void;
+  addToCart: (productId: string, quantity?: number) => Promise<void>;
+  setQuantity: (productId: string, quantity: number) => Promise<void>;
+  removeFromCart: (productId: string) => Promise<void>;
+  clearCart: () => Promise<void>;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [lines, setLines] = useState<CartLine[]>(() => readStoredCart());
+  const { user, loading: authLoading } = useAuth();
+  const userId = user?.id ?? null;
+  // The admin account manages the store, it doesn't shop in it (the navbar
+  // doesn't even show a cart link for admins — see Navbar.tsx), so there's
+  // no reason to create/fetch a cart for that account at all.
+  const skipCart = user?.role === "ADMIN";
 
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Reload the cart whenever the signed-in user changes — login, logout,
+  // or switching accounts on the same browser — so it's always exactly
+  // this user's own cart, never whoever was signed in a moment ago.
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
-  }, [lines]);
+    if (authLoading) return;
+    if (!userId || skipCart) {
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    api
+      .cart()
+      .then((cart) => {
+        if (!cancelled) setItems(cart);
+      })
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, authLoading, skipCart]);
+
+  const addToCart = useCallback(async (productId: string, quantity = 1) => {
+    const next = await api.addCartItem(productId, quantity);
+    setItems(next);
+  }, []);
+
+  const setQuantity = useCallback(async (productId: string, quantity: number) => {
+    const next = await api.setCartItemQuantity(productId, quantity);
+    setItems(next);
+  }, []);
+
+  const removeFromCart = useCallback(async (productId: string) => {
+    const next = await api.removeCartItem(productId);
+    setItems(next);
+  }, []);
+
+  const clearCart = useCallback(async () => {
+    const next = await api.clearCart();
+    setItems(next);
+  }, []);
 
   const quantityOf = useCallback(
-    (productId: string) => lines.find((l) => l.productId === productId)?.quantity ?? 0,
-    [lines]
+    (productId: string) => items.find((i) => i.productId === productId)?.quantity ?? 0,
+    [items]
   );
 
-  const addToCart = useCallback((productId: string, quantity = 1) => {
-    setLines((prev) => {
-      const existing = prev.find((l) => l.productId === productId);
-      if (existing) {
-        return prev.map((l) =>
-          l.productId === productId ? { ...l, quantity: l.quantity + quantity } : l
-        );
-      }
-      return [...prev, { productId, quantity }];
-    });
-  }, []);
-
-  const setQuantity = useCallback((productId: string, quantity: number) => {
-    setLines((prev) => {
-      if (quantity <= 0) return prev.filter((l) => l.productId !== productId);
-      const existing = prev.find((l) => l.productId === productId);
-      if (existing) return prev.map((l) => (l.productId === productId ? { ...l, quantity } : l));
-      return [...prev, { productId, quantity }];
-    });
-  }, []);
-
-  const removeFromCart = useCallback((productId: string) => {
-    setLines((prev) => prev.filter((l) => l.productId !== productId));
-  }, []);
-
-  const clearCart = useCallback(() => setLines([]), []);
-
-  const itemCount = useMemo(() => lines.reduce((sum, l) => sum + l.quantity, 0), [lines]);
+  const itemCount = useMemo(() => items.reduce((sum, i) => sum + i.quantity, 0), [items]);
 
   return (
     <CartContext.Provider
-      value={{ lines, itemCount, quantityOf, addToCart, setQuantity, removeFromCart, clearCart }}
+      value={{ items, loading, itemCount, quantityOf, addToCart, setQuantity, removeFromCart, clearCart }}
     >
       {children}
     </CartContext.Provider>

@@ -19,7 +19,7 @@ export function OrdersPage() {
       <div className="page">
         <h1>My orders</h1>
         <p>You haven't placed any orders yet.</p>
-        <Link to="/" className="button-primary">
+        <Link to="/shop" className="button-primary">
           Browse products
         </Link>
       </div>

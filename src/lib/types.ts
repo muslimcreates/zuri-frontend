@@ -88,4 +88,12 @@ export type DashboardStats = {
   recentOrders: Order[];
 };
 
-export type CartLine = { productId: string; quantity: number };
+// Server-side cart (see the backend's src/lib/cart.ts) — every cart
+// endpoint returns items already joined with live product data, so the
+// frontend never needs a separate product fetch just to render the cart.
+export type CartItem = {
+  id: string;
+  productId: string;
+  quantity: number;
+  product: Product;
+};

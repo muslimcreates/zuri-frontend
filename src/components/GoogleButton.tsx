@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../lib/api";
+import type { User } from "../lib/types";
 
 // Google Identity Services: a small script from Google renders the actual
 // button and, when clicked, hands us back a signed ID token (JWT) — no
@@ -42,7 +43,7 @@ function loadGoogleScript(): Promise<void> {
   return scriptLoadPromise;
 }
 
-export function GoogleButton() {
+export function GoogleButton({ onSuccess }: { onSuccess: (user: User) => void }) {
   const { loginWithGoogle } = useAuth();
   const buttonRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +62,14 @@ export function GoogleButton() {
           client_id: clientId,
           callback: async (response) => {
             try {
-              await loginWithGoogle(response.credential);
+              const me = await loginWithGoogle(response.credential);
+              // loginWithGoogle only updates who's logged in (AuthContext) —
+              // it doesn't navigate anywhere on its own, same as the
+              // email/password form below. Without this, the navbar shows
+              // you're logged in but you're stuck looking at this same page.
+              // Pass the user back so the caller can route by role (e.g. an
+              // admin lands on /admin instead of /shop).
+              onSuccess(me);
             } catch (err) {
               setError(err instanceof ApiError ? err.message : "Google sign-in failed.");
             }
@@ -79,7 +87,7 @@ export function GoogleButton() {
     return () => {
       cancelled = true;
     };
-  }, [clientId, loginWithGoogle]);
+  }, [clientId, loginWithGoogle, onSuccess]);
 
   if (!clientId || clientId.includes("your-client-id")) {
     return (

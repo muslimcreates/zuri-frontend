@@ -11,7 +11,7 @@ export function ProductCard({ product }: { product: Product }) {
         <img src={product.imageUrl} alt={product.name} loading="lazy" />
         {outOfStock && <span className="badge badge-out">Out of stock</span>}
         {!outOfStock && product.fulfillmentType === "ON_REQUEST" && (
-          <span className="badge badge-preorder">Imported to order</span>
+          <span className="badge badge-preorder">Made to order</span>
         )}
       </div>
       <div className="product-card-body">
@@ -19,7 +19,7 @@ export function ProductCard({ product }: { product: Product }) {
         <h3>{product.name}</h3>
         <p className="product-card-price">{formatTRY(product.priceKurus)}</p>
         {product.fulfillmentType === "ON_REQUEST" && product.leadTimeDays && (
-          <p className="product-card-lead-time">~{product.leadTimeDays} days from Kenya</p>
+          <p className="product-card-lead-time">Ships in ~{product.leadTimeDays} days</p>
         )}
       </div>
     </Link>
