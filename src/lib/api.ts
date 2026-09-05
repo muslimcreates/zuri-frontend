@@ -1,4 +1,5 @@
 import type {
+  Address,
   CartItem,
   Category,
   DashboardStats,
@@ -82,6 +83,13 @@ export const api = {
     get<{ verified: true }>(`/api/auth/verify-email?token=${encodeURIComponent(token)}`),
   verifyEmailCode: (code: string) => post<{ verified: true }>("/api/auth/verify-email-code", { code }),
   resendVerification: () => post<{ sent?: true; alreadyVerified?: true }>("/api/auth/resend-verification"),
+  updateProfile: (data: { name: string }) => patch<User>("/api/auth/me", data),
+
+  // Saved delivery address, managed from /settings — see the backend's
+  // src/routes/addresses.ts. Separate from the address snapshot every order
+  // carries (Order.address), which never changes after the fact.
+  defaultAddress: () => get<Address | null>("/api/addresses/default"),
+  saveDefaultAddress: (address: AddressInput) => put<Address>("/api/addresses/default", address),
 
   // Catalog
   categories: () => get<Category[]>("/api/categories"),
@@ -101,16 +109,8 @@ export const api = {
   clearCart: () => del<CartItem[]>("/api/cart"),
 
   // Orders
-  checkout: (data: {
-    address: {
-      fullName: string;
-      phone: string;
-      city: string;
-      addressLine: string;
-      postalCode: string;
-    };
-    paymentMethod: ManualPaymentMethod;
-  }) => post<Order>("/api/orders", data),
+  checkout: (data: { address: AddressInput; paymentMethod: ManualPaymentMethod; saveAsDefault?: boolean }) =>
+    post<Order>("/api/orders", data),
   myOrders: () => get<Order[]>("/api/orders"),
   myOrder: (orderNumber: string) => get<Order>(`/api/orders/${encodeURIComponent(orderNumber)}`),
 
@@ -125,6 +125,14 @@ export const api = {
   adminOrder: (id: string) => get<Order>(`/api/admin/orders/${id}`),
   adminUpdateOrder: (id: string, data: { status: Order["status"]; paymentNote?: string }) =>
     patch<Order>(`/api/admin/orders/${id}`, data),
+};
+
+export type AddressInput = {
+  fullName: string;
+  phone: string;
+  city: string;
+  addressLine: string;
+  postalCode: string;
 };
 
 export type AdminProductInput = {

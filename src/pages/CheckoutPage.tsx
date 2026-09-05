@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { api, ApiError } from "../lib/api";
 import type { ManualPaymentMethod } from "../lib/types";
 import { formatTRY } from "../lib/money";
@@ -28,10 +28,35 @@ export function CheckoutPage() {
   const [addressLine, setAddressLine] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<ManualPaymentMethod>("BANK_TRANSFER");
+  // Whether a saved default address was found and used to prefill the form
+  // below — drives both the "we filled this in for you" note and the
+  // default state of the "save as default" checkbox (checked when there's
+  // nothing saved yet, since that's almost certainly what a first-time
+  // buyer wants; left as a plain, unchecked opt-in once something's already
+  // saved, so re-typing a one-off delivery address doesn't silently
+  // overwrite it).
+  const [hasSavedAddress, setHasSavedAddress] = useState(false);
+  const [saveAsDefault, setSaveAsDefault] = useState(true);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    api
+      .defaultAddress()
+      .then((addr) => {
+        if (!addr) return;
+        setFullName(addr.fullName);
+        setPhone(addr.phone);
+        setCity(addr.city);
+        setAddressLine(addr.addressLine);
+        setPostalCode(addr.postalCode);
+        setHasSavedAddress(true);
+        setSaveAsDefault(false);
+      })
+      .catch(() => {});
+  }, []);
 
   // Same reasoning as CartPage — a product can go inactive after it was
   // added to the cart; the order is placed from whatever the server's
@@ -51,6 +76,7 @@ export function CheckoutPage() {
       const order = await api.checkout({
         address: { fullName, phone, city, addressLine, postalCode },
         paymentMethod,
+        saveAsDefault,
       });
       // The server already clears the cart once the order is created;
       // this just syncs that into the local cache so the navbar badge
@@ -87,6 +113,12 @@ export function CheckoutPage() {
       <form onSubmit={handleSubmit} className="checkout-grid">
         <div className="checkout-form">
           <h2>Delivery address</h2>
+          {hasSavedAddress && (
+            <p className="checkout-note">
+              Filled in from your saved address — edit it below for this order only, or update it for good in{" "}
+              <Link to="/settings">Settings</Link>.
+            </p>
+          )}
           <label>
             Full name
             <input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
@@ -111,6 +143,14 @@ export function CheckoutPage() {
             Postal code
             <input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} required />
             {fieldErrors.postalCode && <span className="field-error">{fieldErrors.postalCode[0]}</span>}
+          </label>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={saveAsDefault}
+              onChange={(e) => setSaveAsDefault(e.target.checked)}
+            />
+            Save this as my default delivery address
           </label>
 
           <h2>Payment</h2>

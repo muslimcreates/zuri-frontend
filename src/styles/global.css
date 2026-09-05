@@ -78,6 +78,7 @@ h3 {
   z-index: 10;
 }
 .navbar-inner {
+  position: relative;
   max-width: 1100px;
   margin: 0 auto;
   padding: 12px 20px;
@@ -127,6 +128,40 @@ h3 {
   border-radius: 999px;
   padding: 1px 6px;
   margin-left: 4px;
+}
+/* Hidden on desktop — .navbar-links stays visible inline there. The
+   @media block further down flips both of these for narrow screens. */
+.navbar-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.navbar-hamburger span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  margin: 0 auto;
+  background: var(--ink);
+  border-radius: 2px;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.navbar-hamburger[aria-expanded="true"] span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.navbar-hamburger[aria-expanded="true"] span:nth-child(2) {
+  opacity: 0;
+}
+.navbar-hamburger[aria-expanded="true"] span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
 }
 
 /* --- Buttons & inputs --- */
@@ -275,11 +310,86 @@ main {
   font-size: 14px;
 }
 .site-footer {
-  text-align: center;
-  padding: 20px;
-  color: var(--ink-muted);
+  margin-top: 40px;
+  background: var(--brand-dark);
+  color: #f3e8d8;
+  font-size: 14px;
+}
+.site-footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 20px 28px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 32px;
+}
+.site-footer-brand p {
+  margin: 12px 0 0;
+  color: #e9d8bf;
   font-size: 13px;
-  border-top: 1px solid var(--border);
+  line-height: 1.6;
+  max-width: 32ch;
+}
+.site-footer-brand .brand-name {
+  color: #fff;
+}
+.site-footer-brand .brand-tagline {
+  color: #e9d8bf;
+}
+.site-footer-col h3 {
+  margin: 0 0 14px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+}
+.site-footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.site-footer-links a,
+.site-footer-whatsapp {
+  color: #f3e8d8;
+}
+.site-footer-links a:hover,
+.site-footer-whatsapp:hover {
+  color: #fff;
+}
+.site-footer-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+.site-footer-whatsapp svg {
+  color: #25d366;
+  flex-shrink: 0;
+}
+.site-footer-address {
+  display: flex;
+  flex-direction: column;
+  font-style: normal;
+  color: #e9d8bf;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.site-footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 16px 20px;
+  text-align: center;
+}
+.site-footer-bottom p {
+  margin: 0;
+  color: #d9c3a3;
+  font-size: 12px;
+}
+@media (max-width: 700px) {
+  .site-footer-inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
 }
 
 /* --- Verify email banner --- */
@@ -1076,9 +1186,90 @@ main {
   .landing-trust-list {
     grid-template-columns: 1fr 1fr;
   }
+
+  /* Navbar collapses into a hamburger-triggered panel — every link, the
+     cart, the welcome message and log out all move in here together,
+     rather than only hiding log out on its own. */
+  .navbar-hamburger {
+    display: flex;
+  }
+  .navbar-links {
+    display: none;
+  }
+  .navbar-links-open {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    padding: 8px 20px 16px;
+  }
+  .navbar-links-open a,
+  .navbar-links-open .link-button {
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--border);
+    width: 100%;
+  }
+  .navbar-links-open .navbar-user {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    width: 100%;
+  }
+  .navbar-links-open .navbar-user span {
+    padding: 10px 4px 0;
+    font-weight: 600;
+  }
 }
 @media (max-width: 480px) {
   .landing-trust-list {
     grid-template-columns: 1fr;
   }
+}
+
+/* --- Settings page --- */
+.settings-page {
+  max-width: 640px;
+}
+.settings-intro {
+  color: var(--ink-muted);
+  margin: -4px 0 24px;
+}
+.settings-section {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.settings-section h2 {
+  margin: 0 0 6px;
+  font-size: 17px;
+}
+.settings-section-hint {
+  color: var(--ink-muted);
+  font-size: 13px;
+  margin: 0 0 18px;
+}
+.settings-form {
+  margin-top: 16px;
+}
+.settings-form label {
+  margin-bottom: 16px;
+}
+.settings-field-hint {
+  color: var(--ink-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+.settings-form input:disabled {
+  background: var(--bg-alt);
+  color: var(--ink-muted);
+  cursor: not-allowed;
 }
