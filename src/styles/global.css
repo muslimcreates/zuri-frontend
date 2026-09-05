@@ -190,6 +190,15 @@ input,
 textarea,
 select {
   font: inherit;
+  /* iOS Safari (and some other mobile browsers) auto-zoom the whole page
+     in on focus if the tapped input's text is smaller than 16px — that's
+     the "page zooms while typing" effect. It has nothing to do with the
+     viewport meta tag (left alone on purpose, so pinch-to-zoom keeps
+     working normally) — it's purely this font-size, which without this
+     line would inherit 14px from the surrounding <label>. Overriding just
+     the size after `font: inherit` keeps everything else (family, weight)
+     inherited as before. */
+  font-size: 16px;
   padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
