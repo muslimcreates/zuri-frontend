@@ -50,6 +50,17 @@ export function GoogleButton({ onSuccess }: { onSuccess: (user: User) => void })
 
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
+  // LoginPage/SignupPage pass an inline `onSuccess={(me) => ...}` — a brand
+  // new function on every one of their renders, which happens on every
+  // keystroke in the email/password fields (that's local state on those
+  // pages). If `onSuccess` were a dependency of the effect below, Google's
+  // button would get torn down and re-rendered into `buttonRef` on every
+  // keystroke — that's the flicker. Keeping the latest callback in a ref
+  // (updated on every render, no effect needed) lets the effect below read
+  // the current `onSuccess` without ever needing to re-run because of it.
+  const onSuccessRef = useRef(onSuccess);
+  onSuccessRef.current = onSuccess;
+
   useEffect(() => {
     if (!clientId || clientId.includes("your-client-id")) return;
 
@@ -69,7 +80,7 @@ export function GoogleButton({ onSuccess }: { onSuccess: (user: User) => void })
               // you're logged in but you're stuck looking at this same page.
               // Pass the user back so the caller can route by role (e.g. an
               // admin lands on /admin instead of /shop).
-              onSuccess(me);
+              onSuccessRef.current(me);
             } catch (err) {
               setError(err instanceof ApiError ? err.message : "Google sign-in failed.");
             }
@@ -87,7 +98,9 @@ export function GoogleButton({ onSuccess }: { onSuccess: (user: User) => void })
     return () => {
       cancelled = true;
     };
-  }, [clientId, loginWithGoogle, onSuccess]);
+    // onSuccess is deliberately excluded — see onSuccessRef above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientId, loginWithGoogle]);
 
   if (!clientId || clientId.includes("your-client-id")) {
     return (
