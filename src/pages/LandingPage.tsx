@@ -18,6 +18,40 @@ const TRUST_POINTS = [
   { icon: "💬", text: "A small team — reach us directly, no call centre" },
 ];
 
+function shuffled<T>(items: T[]): T[] {
+  return [...items].sort(() => Math.random() - 0.5);
+}
+
+// The "taste of what's in store" strip is meant to show the breadth of the
+// catalog, not just whatever was added most recently — sorting products by
+// createdAt and taking the first few (the naive approach) means a big batch
+// added to one category (e.g. a new Electronics lineup) can crowd out every
+// other department entirely. Instead: guarantee one random pick per
+// category first, then fill any remaining slots with more random products,
+// and shuffle the final order so the mix also changes across visits.
+function pickShowcase(products: Product[], max: number): Product[] {
+  const byCategory = new Map<string, Product[]>();
+  for (const p of products) {
+    const list = byCategory.get(p.category.id) ?? [];
+    list.push(p);
+    byCategory.set(p.category.id, list);
+  }
+
+  const picks: Product[] = [];
+  for (const list of byCategory.values()) {
+    const [choice] = shuffled(list);
+    if (choice) picks.push(choice);
+  }
+
+  const pickedIds = new Set(picks.map((p) => p.id));
+  for (const p of shuffled(products.filter((p) => !pickedIds.has(p.id)))) {
+    if (picks.length >= max) break;
+    picks.push(p);
+  }
+
+  return shuffled(picks).slice(0, max);
+}
+
 // Public marketing page, shown at "/" to signed-out and signed-in visitors
 // alike. Deliberately says nothing about how fulfillment actually works
 // (some items stocked here, some imported per order) — that's internal.
@@ -31,7 +65,7 @@ export function LandingPage() {
   useEffect(() => {
     api
       .products()
-      .then((all) => setProducts(all.slice(0, 8)))
+      .then((all) => setProducts(pickShowcase(all, 8)))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
