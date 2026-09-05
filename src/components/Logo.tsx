@@ -35,7 +35,7 @@ export function Logo({
       {withWordmark && (
         <span className="logo-wordmark">
           <span className="brand-name">Zuri Express</span>
-          <span className="brand-tagline">For Kenyans, By Kenyans</span>
+          <span className="brand-tagline">A Taste of Kenya, Beyond Kenya</span>
         </span>
       )}
     </span>

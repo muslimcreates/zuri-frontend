@@ -41,9 +41,7 @@ export function LandingPage() {
       <section className="landing-hero landing-hero-animated">
         <Logo size={72} />
         <h1>Looking for Kenyan products in Türkiye?</h1>
-        <p className="landing-hero-sub">
-          Look no further — Zuri Express has brought it to your doorstep.
-        </p>
+        <p className="landing-hero-sub">A Taste of Kenya, Beyond Kenya</p>
         <p className="landing-hero-body">
           From your favourite grocery staples to spices, snacks and fabric, we bring the taste and
           feel of home to Kenyans living across Türkiye. Browse the store, order in a few taps, and
