@@ -37,8 +37,12 @@ export function ProductDetailPage() {
 
   if (!product) return <p className="page-loading">Loading…</p>;
 
-  const outOfStock = product.fulfillmentType === "STOCKED" && (product.stock ?? 0) <= 0;
-  const maxQuantity = product.fulfillmentType === "STOCKED" ? Math.max(product.stock ?? 0, 0) : 99;
+  // Stock is no longer a gate on ordering — a lot of the catalog is sourced
+  // per-order from Kenya rather than sitting in inventory, so "0 in stock"
+  // just means "not on hand yet". Only cap the quantity picker when there's
+  // real stock on hand to not oversell it; otherwise leave plenty of room.
+  const hasStockOnHand = product.fulfillmentType === "STOCKED" && (product.stock ?? 0) > 0;
+  const maxQuantity = hasStockOnHand ? (product.stock as number) : 99;
 
   async function handleAddToCart() {
     setAddError(null);
@@ -70,7 +74,9 @@ export function ProductDetailPage() {
 
           {product.fulfillmentType === "STOCKED" ? (
             <p className="fulfillment-note">
-              {outOfStock ? "Currently out of stock." : `${product.stock} in stock, ready to ship.`}
+              {hasStockOnHand
+                ? `${product.stock} in stock, ready to ship.`
+                : "Sourced per order from Kenya — order now and we'll get it to you."}
             </p>
           ) : (
             <p className="fulfillment-note">
@@ -78,29 +84,27 @@ export function ProductDetailPage() {
             </p>
           )}
 
-          {!outOfStock && (
-            <div className="add-to-cart-row">
-              <input
-                type="number"
-                min={1}
-                max={maxQuantity || undefined}
-                value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
-              />
-              <button type="button" className="button-primary" onClick={handleAddToCart}>
-                {added ? "Added ✓" : "Add to cart"}
-              </button>
-              <button
-                type="button"
-                className="button-secondary"
-                onClick={async () => {
-                  if (await handleAddToCart()) navigate("/cart");
-                }}
-              >
-                Buy now
-              </button>
-            </div>
-          )}
+          <div className="add-to-cart-row">
+            <input
+              type="number"
+              min={1}
+              max={maxQuantity || undefined}
+              value={quantity}
+              onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
+            />
+            <button type="button" className="button-primary" onClick={handleAddToCart}>
+              {added ? "Added ✓" : "Add to cart"}
+            </button>
+            <button
+              type="button"
+              className="button-secondary"
+              onClick={async () => {
+                if (await handleAddToCart()) navigate("/cart");
+              }}
+            >
+              Buy now
+            </button>
+          </div>
           {addError && <p className="field-error">{addError}</p>}
         </div>
       </div>

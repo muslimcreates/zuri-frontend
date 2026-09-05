@@ -85,8 +85,11 @@ export function CartPage() {
           </thead>
           <tbody>
             {rows.map(({ product, quantity }) => {
-              const maxQuantity =
-                product.fulfillmentType === "STOCKED" ? Math.max(product.stock ?? 0, 0) : 99;
+              // Only cap by stock when there's real stock on hand to avoid
+              // overselling it — a 0/unset stock just means this one is
+              // sourced per order, so it isn't a limit on quantity.
+              const hasStockOnHand = product.fulfillmentType === "STOCKED" && (product.stock ?? 0) > 0;
+              const maxQuantity = hasStockOnHand ? (product.stock as number) : 99;
               return (
                 <tr key={product.id}>
                   <td className="cart-product-cell">

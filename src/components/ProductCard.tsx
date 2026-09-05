@@ -12,7 +12,6 @@ import { ApiError } from "../lib/api";
 // <Link> navigation, hence stopPropagation/preventDefault below.
 export function ProductCard({ product }: { product: Product }) {
   const { addToCart, quantityOf } = useCart();
-  const outOfStock = product.fulfillmentType === "STOCKED" && (product.stock ?? 0) <= 0;
   const inCart = quantityOf(product.id);
 
   const [status, setStatus] = useState<"idle" | "adding" | "added" | "error">("idle");
@@ -42,22 +41,19 @@ export function ProductCard({ product }: { product: Product }) {
     <Link to={`/products/${product.slug}`} className="product-card">
       <div className="product-card-image">
         <img src={product.imageUrl} alt={product.name} loading="lazy" />
-        {outOfStock && <span className="badge badge-out">Out of stock</span>}
-        {!outOfStock && product.fulfillmentType === "ON_REQUEST" && (
+        {product.fulfillmentType === "ON_REQUEST" && (
           <span className="badge badge-preorder">Made to order</span>
         )}
-        {!outOfStock && (
-          <button
-            type="button"
-            className={`quick-add-btn quick-add-${status}`}
-            onClick={handleQuickAdd}
-            disabled={status === "adding"}
-            aria-label={`Add ${product.name} to cart`}
-            title={`Add ${product.name} to cart`}
-          >
-            {status === "added" ? "✓" : status === "error" ? "!" : "+"}
-          </button>
-        )}
+        <button
+          type="button"
+          className={`quick-add-btn quick-add-${status}`}
+          onClick={handleQuickAdd}
+          disabled={status === "adding"}
+          aria-label={`Add ${product.name} to cart`}
+          title={`Add ${product.name} to cart`}
+        >
+          {status === "added" ? "✓" : status === "error" ? "!" : "+"}
+        </button>
         {inCart > 0 && <span className="badge badge-in-cart">{inCart} in cart</span>}
       </div>
       <div className="product-card-body">
