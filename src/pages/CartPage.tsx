@@ -68,49 +68,55 @@ export function CartPage() {
       )}
       {error && <p className="page-error">{error}</p>}
 
-      <table className="cart-table">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Price</th>
-            <th>Quantity</th>
-            <th>Total</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(({ product, quantity }) => {
-            const maxQuantity =
-              product.fulfillmentType === "STOCKED" ? Math.max(product.stock ?? 0, 0) : 99;
-            return (
-              <tr key={product.id}>
-                <td className="cart-product-cell">
-                  <img src={product.imageUrl} alt={product.name} />
-                  <Link to={`/products/${product.slug}`}>{product.name}</Link>
-                </td>
-                <td>{formatTRY(product.priceKurus)}</td>
-                <td>
-                  <input
-                    type="number"
-                    min={1}
-                    max={maxQuantity || undefined}
-                    value={quantity}
-                    onChange={(e) =>
-                      handleSetQuantity(product.id, Math.max(1, Number(e.target.value) || 1))
-                    }
-                  />
-                </td>
-                <td>{formatTRY(product.priceKurus * quantity)}</td>
-                <td>
-                  <button type="button" className="link-button" onClick={() => handleRemove(product.id)}>
-                    Remove
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      {/* Wrapped in a horizontally-scrollable container, not the page itself
+          — five columns plus an image never fit a phone width, and without
+          this the whole page would gain a horizontal scrollbar and visibly
+          shift/wobble instead of just this table scrolling in place. */}
+      <div className="table-scroll">
+        <table className="cart-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Total</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(({ product, quantity }) => {
+              const maxQuantity =
+                product.fulfillmentType === "STOCKED" ? Math.max(product.stock ?? 0, 0) : 99;
+              return (
+                <tr key={product.id}>
+                  <td className="cart-product-cell">
+                    <img src={product.imageUrl} alt={product.name} />
+                    <Link to={`/products/${product.slug}`}>{product.name}</Link>
+                  </td>
+                  <td>{formatTRY(product.priceKurus)}</td>
+                  <td>
+                    <input
+                      type="number"
+                      min={1}
+                      max={maxQuantity || undefined}
+                      value={quantity}
+                      onChange={(e) =>
+                        handleSetQuantity(product.id, Math.max(1, Number(e.target.value) || 1))
+                      }
+                    />
+                  </td>
+                  <td>{formatTRY(product.priceKurus * quantity)}</td>
+                  <td>
+                    <button type="button" className="link-button" onClick={() => handleRemove(product.id)}>
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
       <div className="cart-summary">
         <p>

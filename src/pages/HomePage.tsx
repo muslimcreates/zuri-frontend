@@ -28,7 +28,7 @@ export function HomePage() {
   }, [activeCategory]);
 
   return (
-    <div className="page">
+    <div className="page page-wide">
       <section className="hero">
         <h1>Kenyan merchandise, delivered in Türkiye</h1>
         <p>Groceries, spices, fabric and more — all your Kenyan favourites in one place.</p>

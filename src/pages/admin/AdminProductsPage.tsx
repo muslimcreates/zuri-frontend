@@ -42,37 +42,39 @@ export function AdminProductsPage() {
           + New product
         </Link>
       </div>
-      <table className="order-table">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Category</th>
-            <th>Price</th>
-            <th>Fulfillment</th>
-            <th>Status</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((p) => (
-            <tr key={p.id}>
-              <td>{p.name}</td>
-              <td>{p.category.name}</td>
-              <td>{formatTRY(p.priceKurus)}</td>
-              <td>
-                {p.fulfillmentType === "STOCKED" ? `${p.stock ?? 0} in stock` : `~${p.leadTimeDays}d lead time`}
-              </td>
-              <td>{p.active ? "Active" : "Hidden"}</td>
-              <td className="admin-row-actions">
-                <Link to={`/admin/products/${p.id}`}>Edit</Link>
-                <button type="button" className="link-button" onClick={() => handleToggleActive(p)}>
-                  {p.active ? "Hide" : "Unhide"}
-                </button>
-              </td>
+      <div className="table-scroll">
+        <table className="order-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Fulfillment</th>
+              <th>Status</th>
+              <th />
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {products.map((p) => (
+              <tr key={p.id}>
+                <td>{p.name}</td>
+                <td>{p.category.name}</td>
+                <td>{formatTRY(p.priceKurus)}</td>
+                <td>
+                  {p.fulfillmentType === "STOCKED" ? `${p.stock ?? 0} in stock` : `~${p.leadTimeDays}d lead time`}
+                </td>
+                <td>{p.active ? "Active" : "Hidden"}</td>
+                <td className="admin-row-actions">
+                  <Link to={`/admin/products/${p.id}`}>Edit</Link>
+                  <button type="button" className="link-button" onClick={() => handleToggleActive(p)}>
+                    {p.active ? "Hide" : "Unhide"}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -50,28 +50,30 @@ export function AdminDashboardPage() {
 
       <section className="admin-section">
         <h2>Recent orders</h2>
-        <table className="order-table">
-          <thead>
-            <tr>
-              <th>Order</th>
-              <th>Status</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stats.recentOrders.map((o) => (
-              <tr key={o.id}>
-                <td>
-                  <Link to={`/admin/orders/${o.id}`}>{o.orderNumber}</Link>
-                </td>
-                <td>
-                  <OrderStatusBadge status={o.status} />
-                </td>
-                <td>{formatTRY(o.subtotalKurus)}</td>
+        <div className="table-scroll">
+          <table className="order-table">
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Status</th>
+                <th>Total</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {stats.recentOrders.map((o) => (
+                <tr key={o.id}>
+                  <td>
+                    <Link to={`/admin/orders/${o.id}`}>{o.orderNumber}</Link>
+                  </td>
+                  <td>
+                    <OrderStatusBadge status={o.status} />
+                  </td>
+                  <td>{formatTRY(o.subtotalKurus)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   );

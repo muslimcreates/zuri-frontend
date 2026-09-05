@@ -29,30 +29,32 @@ export function OrdersPage() {
   return (
     <div className="page">
       <h1>My orders</h1>
-      <table className="order-table">
-        <thead>
-          <tr>
-            <th>Order</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {orders.map((o) => (
-            <tr key={o.id}>
-              <td>
-                <Link to={`/orders/${o.orderNumber}`}>{o.orderNumber}</Link>
-              </td>
-              <td>{new Date(o.createdAt).toLocaleDateString()}</td>
-              <td>
-                <OrderStatusBadge status={o.status} />
-              </td>
-              <td>{formatTRY(o.subtotalKurus)}</td>
+      <div className="table-scroll">
+        <table className="order-table">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Total</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {orders.map((o) => (
+              <tr key={o.id}>
+                <td>
+                  <Link to={`/orders/${o.orderNumber}`}>{o.orderNumber}</Link>
+                </td>
+                <td>{new Date(o.createdAt).toLocaleDateString()}</td>
+                <td>
+                  <OrderStatusBadge status={o.status} />
+                </td>
+                <td>{formatTRY(o.subtotalKurus)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
