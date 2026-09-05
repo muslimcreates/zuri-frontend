@@ -1,1 +1,11 @@
+# Proxy API calls through our own domain instead of calling the Render
+# backend directly from the browser. This makes every /api/* request
+# same-origin from the browser's point of view, so the session cookie is
+# a first-party cookie (not a cross-site one) — this is what fixes people
+# getting logged out on refresh, since some browsers restrict or block
+# cookies set by a different domain than the page they're on, even with
+# SameSite=None; Secure configured correctly. Must come before the SPA
+# catch-all below — Netlify uses the first matching rule.
+/api/*  https://zuri-backend-4tzh.onrender.com/api/:splat  200
+
 /*  /index.html  200

@@ -8,7 +8,19 @@ import type {
   User,
 } from "./types";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+// In production we always call our own domain (zuriexpress.com/api/...) and
+// let Netlify's proxy rule (see public/_redirects) forward that to the
+// Render backend server-side. That keeps every request same-origin from the
+// browser's perspective, which is what makes the login cookie behave as a
+// first-party cookie instead of a cross-site one — see src/lib/session.ts
+// on the backend for the other half of this. VITE_API_URL is only used for
+// local development, where the frontend and backend run on different ports
+// on localhost; there's deliberately no way to point production at a
+// different API host by env var anymore, since that's exactly the kind of
+// setting that's easy to forget to update (it broke login once already,
+// when the frontend moved to a custom domain and CLIENT_ORIGIN on the
+// backend wasn't updated to match).
+const API_URL = import.meta.env.PROD ? "" : import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 // Thrown for any non-2xx response. `fields` is set for Zod validation
 // errors (400s from the backend's error middleware), keyed by field name —
