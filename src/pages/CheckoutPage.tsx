@@ -12,9 +12,9 @@ const PAYMENT_METHODS: { value: ManualPaymentMethod; label: string; hint: string
     hint: "We'll email you our IBAN details. Your order ships once payment is confirmed.",
   },
   {
-    value: "CASH_ON_DELIVERY",
-    label: "Cash on delivery",
-    hint: "Pay in cash when your order arrives.",
+    value: "MPESA",
+    label: "M-Pesa",
+    hint: "We'll email you the M-Pesa till/paybill details. Your order ships once payment is confirmed.",
   },
 ];
 

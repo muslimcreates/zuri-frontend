@@ -37,7 +37,10 @@ export type Product = {
   createdAt: string;
 };
 
-export type ManualPaymentMethod = "BANK_TRANSFER" | "CASH_ON_DELIVERY";
+// CASH_ON_DELIVERY is no longer offered at checkout (see CheckoutPage's
+// PAYMENT_METHODS list) but stays in this type so an order placed before it
+// was removed still displays correctly (OrderDetailPage/AdminOrderDetailPage).
+export type ManualPaymentMethod = "BANK_TRANSFER" | "MPESA" | "CASH_ON_DELIVERY";
 
 export type OrderStatus =
   | "PENDING_PAYMENT"

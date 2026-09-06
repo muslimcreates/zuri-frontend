@@ -90,7 +90,14 @@ export function AdminOrderDetailPage() {
             <br />
             {order.address.phone}
           </p>
-          <p>Payment method: {order.paymentMethod === "BANK_TRANSFER" ? "Bank transfer" : "Cash on delivery"}</p>
+          <p>
+            Payment method:{" "}
+            {order.paymentMethod === "BANK_TRANSFER"
+              ? "Bank transfer"
+              : order.paymentMethod === "MPESA"
+                ? "M-Pesa"
+                : "Cash on delivery"}
+          </p>
         </div>
 
         <div className="admin-form">

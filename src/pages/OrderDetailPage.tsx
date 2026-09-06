@@ -90,7 +90,13 @@ export function OrderDetailPage() {
             {order.address.phone}
           </p>
           <h2>Payment</h2>
-          <p>{order.paymentMethod === "BANK_TRANSFER" ? "Bank transfer (havale/EFT)" : "Cash on delivery"}</p>
+          <p>
+            {order.paymentMethod === "BANK_TRANSFER"
+              ? "Bank transfer (havale/EFT)"
+              : order.paymentMethod === "MPESA"
+                ? "M-Pesa"
+                : "Cash on delivery"}
+          </p>
         </div>
       </div>
     </div>
