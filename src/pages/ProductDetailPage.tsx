@@ -72,17 +72,11 @@ export function ProductDetailPage() {
           <p className="product-detail-price">{formatTRY(product.priceKurus)}</p>
           <p className="product-detail-description">{product.description}</p>
 
-          {product.fulfillmentType === "STOCKED" ? (
-            <p className="fulfillment-note">
-              {hasStockOnHand
-                ? `${product.stock} in stock, ready to ship.`
-                : "Sourced per order from Kenya — order now and we'll get it to you."}
-            </p>
-          ) : (
-            <p className="fulfillment-note">
-              Made to order — ships in about {product.leadTimeDays} days.
-            </p>
-          )}
+          <p className="fulfillment-note">
+            {hasStockOnHand
+              ? `${product.stock} in stock, ready to ship.`
+              : "Sourced per order from Kenya — order now and we'll get it to you."}
+          </p>
 
           <div className="add-to-cart-row">
             <input

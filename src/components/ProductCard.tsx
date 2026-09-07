@@ -41,9 +41,6 @@ export function ProductCard({ product }: { product: Product }) {
     <Link to={`/products/${product.slug}`} className="product-card">
       <div className="product-card-image">
         <img src={product.imageUrl} alt={product.name} loading="lazy" />
-        {product.fulfillmentType === "ON_REQUEST" && (
-          <span className="badge badge-preorder">Made to order</span>
-        )}
         <button
           type="button"
           className={`quick-add-btn quick-add-${status}`}
