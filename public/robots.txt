@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /checkout
+Disallow: /cart
+Disallow: /orders
+Disallow: /settings
+
+Sitemap: https://zuriexpress.com/sitemap.xml
