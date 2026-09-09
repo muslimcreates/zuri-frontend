@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../../lib/api";
 import type { Order, OrderStatus } from "../../lib/types";
-import { formatTRY } from "../../lib/money";
+import { formatTRY, splitDeposit } from "../../lib/money";
 import { OrderStatusBadge } from "../../components/OrderStatusBadge";
 
 const STATUSES: OrderStatus[] = [
@@ -46,6 +46,8 @@ export function AdminOrderDetailPage() {
 
   if (!order) return <p className="page-loading">Loading…</p>;
 
+  const { depositKurus, balanceKurus } = splitDeposit(order.subtotalKurus);
+
   return (
     <div>
       <Link to="/admin/orders" className="back-link">
@@ -78,6 +80,16 @@ export function AdminOrderDetailPage() {
           <div className="order-summary-total">
             <span>Total</span>
             <span>{formatTRY(order.subtotalKurus)}</span>
+          </div>
+          <div className="order-summary-deposit">
+            <div>
+              <span>Deposit expected</span>
+              <span>{formatTRY(depositKurus)}</span>
+            </div>
+            <div>
+              <span>Balance on delivery</span>
+              <span>{formatTRY(balanceKurus)}</span>
+            </div>
           </div>
 
           <h3>Delivery address</h3>

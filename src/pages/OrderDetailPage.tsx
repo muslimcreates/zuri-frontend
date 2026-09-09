@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { api, ApiError } from "../lib/api";
 import type { Order } from "../lib/types";
-import { formatTRY } from "../lib/money";
+import { formatTRY, splitDeposit } from "../lib/money";
 import { OrderStatusBadge } from "../components/OrderStatusBadge";
 
 export function OrderDetailPage() {
@@ -32,12 +32,16 @@ export function OrderDetailPage() {
 
   if (!order) return <p className="page-loading">Loading…</p>;
 
+  const { depositKurus, balanceKurus } = splitDeposit(order.subtotalKurus);
+
   return (
     <div className="page">
       {justPlaced && (
         <p className="success-banner">
           Order placed! We'll be in touch with payment details for{" "}
-          {order.paymentMethod === "BANK_TRANSFER" ? "your bank transfer" : "cash on delivery"}.
+          {order.paymentMethod === "BANK_TRANSFER" ? "your bank transfer" : "your M-Pesa payment"}
+          {" — "}pay the {formatTRY(depositKurus)} deposit to confirm, and the remaining{" "}
+          {formatTRY(balanceKurus)} is due on delivery.
         </p>
       )}
 
@@ -75,6 +79,16 @@ export function OrderDetailPage() {
           <div className="order-summary-total">
             <span>Total</span>
             <span>{formatTRY(order.subtotalKurus)}</span>
+          </div>
+          <div className="order-summary-deposit">
+            <div>
+              <span>Deposit to confirm</span>
+              <span>{formatTRY(depositKurus)}</span>
+            </div>
+            <div>
+              <span>Due on delivery</span>
+              <span>{formatTRY(balanceKurus)}</span>
+            </div>
           </div>
         </div>
 

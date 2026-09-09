@@ -2,19 +2,19 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, ApiError } from "../lib/api";
 import type { ManualPaymentMethod } from "../lib/types";
-import { formatTRY } from "../lib/money";
+import { formatTRY, splitDeposit } from "../lib/money";
 import { useCart } from "../context/CartContext";
 
 const PAYMENT_METHODS: { value: ManualPaymentMethod; label: string; hint: string }[] = [
   {
     value: "BANK_TRANSFER",
     label: "Bank transfer (havale/EFT)",
-    hint: "We'll email you our IBAN details. Your order ships once payment is confirmed.",
+    hint: "We'll email you our IBAN details. Pay the deposit below to confirm — the rest is due on delivery.",
   },
   {
     value: "MPESA",
     label: "M-Pesa",
-    hint: "We'll email you the M-Pesa till/paybill details. Your order ships once payment is confirmed.",
+    hint: "We'll email you the M-Pesa till/paybill details. Pay the deposit below to confirm — the rest is due on delivery.",
   },
 ];
 
@@ -64,6 +64,7 @@ export function CheckoutPage() {
   // what checkout will really charge for.
   const rows = items.filter((i) => i.product.active);
   const subtotalKurus = rows.reduce((sum, r) => sum + r.product.priceKurus * r.quantity, 0);
+  const { depositKurus, balanceKurus } = splitDeposit(subtotalKurus);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -172,8 +173,8 @@ export function CheckoutPage() {
             ))}
           </div>
           <p className="checkout-note">
-            No card payments yet — Zuri Express doesn't have a registered Turkish company, so
-            checkout is manual for now. We'll confirm your order by hand once payment arrives.
+            Pay half now to confirm your order — the rest is due on delivery. We'll confirm your
+            order by hand once your deposit arrives.
           </p>
 
           {error && <p className="page-error">{error}</p>}
@@ -195,8 +196,18 @@ export function CheckoutPage() {
             <span>Total</span>
             <span>{formatTRY(subtotalKurus)}</span>
           </div>
+          <div className="order-summary-deposit">
+            <div>
+              <span>Pay now (50% deposit)</span>
+              <span>{formatTRY(depositKurus)}</span>
+            </div>
+            <div>
+              <span>Due on delivery</span>
+              <span>{formatTRY(balanceKurus)}</span>
+            </div>
+          </div>
           <button type="submit" className="button-primary" disabled={submitting}>
-            {submitting ? "Placing order…" : "Place order"}
+            {submitting ? "Placing order…" : `Place order — pay ${formatTRY(depositKurus)} now`}
           </button>
         </div>
       </form>

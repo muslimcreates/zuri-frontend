@@ -729,6 +729,22 @@ main {
   border-top: 2px solid var(--ink);
   margin-bottom: 14px;
 }
+.order-summary-deposit {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 14px;
+}
+.order-summary-deposit div {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+.order-summary-deposit div:first-child {
+  font-weight: 700;
+  color: var(--brand-dark);
+}
 
 /* --- Order detail --- */
 .order-detail-header {
